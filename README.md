@@ -11,23 +11,32 @@
 
 ### 一键运行
 
-#### 🌍 国际版（推荐国外用户）
+#### 🌍 默认推荐
 
 ```bash
+# 使用 curl
 curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | sh
+
+# 或使用 wget
+wget -qO- https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | sh
 ```
 
-#### 🇨🇳 国内镜像加速版（推荐国内用户）
+如果上面命令无法下载，可尝试下方镜像：
+
+#### 🤡 狗点饭镜像
 
 ```bash
+# 使用 curl
 curl -fsSL https://gou.fan/coremark/run-mirror.sh | sh
+
+# 或使用 wget
+wget -qO- https://gou.fan/coremark/run-mirror.sh | sh
 ```
 
-> 💡 **两个版本功能完全相同**，区别仅在于下载源：
-> - 国际版从 GitHub 下载（国外速度快）
-> - 国内版从狗点饭服务器下载（国内速度快）
 
-### 手动下载
+### 手动下载运行
+
+一键运行脚本出问题时，可尝试手动下载运行coremark跑分：
 
 根据你的 CPU 架构选择对应版本：
 
@@ -36,7 +45,7 @@ curl -fsSL https://gou.fan/coremark/run-mirror.sh | sh
 - **ARM64** (aarch64): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_arm64)
 - **ARMv7** (armhf): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_armv7)
 
-**国内镜像：**
+**狗点饭镜像：**
 - **x86_64**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_x86_64)
 - **ARM64**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_arm64)
 - **ARMv7**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_armv7)
