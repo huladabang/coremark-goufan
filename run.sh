@@ -130,24 +130,24 @@ download_coremark() {
     # 查找可执行目录
     local work_dir=$(find_executable_dir)
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ 找到可执行目录: ${NC}$work_dir"
+        echo -e "${GREEN}✓ 找到可执行目录: ${NC}$work_dir" >&2
     else
-        echo -e "${RED}========================================${NC}"
-        echo -e "${RED}  警告：无法找到可执行目录${NC}"
-        echo -e "${RED}========================================${NC}"
-        echo -e "${YELLOW}你的系统可能限制了程序执行。${NC}"
-        echo -e "${YELLOW}请尝试以下手动操作：${NC}\n"
-        echo -e "  ${BLUE}1. 下载二进制文件：${NC}"
-        echo -e "     wget $download_url\n"
-        echo -e "  ${BLUE}2. 找到可写且可执行的目录，例如：${NC}"
-        echo -e "     cd /volume1/@tmp      ${GREEN}# 群晖${NC}"
-        echo -e "     cd /share/CACHEDEV1_DATA/temp  ${GREEN}# 威联通${NC}"
-        echo -e "     cd /var/tmp           ${GREEN}# 通用${NC}\n"
-        echo -e "  ${BLUE}3. 移动文件并运行：${NC}"
-        echo -e "     mv ~/$binary_name ."
-        echo -e "     chmod +x $binary_name"
-        echo -e "     ./$binary_name 0x0 0x0 0x66 0 7 1 2000\n"
-        echo -e "${YELLOW}尝试继续使用: $work_dir${NC}\n"
+        echo -e "${RED}========================================${NC}" >&2
+        echo -e "${RED}  警告：无法找到可执行目录${NC}" >&2
+        echo -e "${RED}========================================${NC}" >&2
+        echo -e "${YELLOW}你的系统可能限制了程序执行。${NC}" >&2
+        echo -e "${YELLOW}请尝试以下手动操作：${NC}\n" >&2
+        echo -e "  ${BLUE}1. 下载二进制文件：${NC}" >&2
+        echo -e "     wget $download_url\n" >&2
+        echo -e "  ${BLUE}2. 找到可写且可执行的目录，例如：${NC}" >&2
+        echo -e "     cd /volume1/@tmp      ${GREEN}# 群晖${NC}" >&2
+        echo -e "     cd /share/CACHEDEV1_DATA/temp  ${GREEN}# 威联通${NC}" >&2
+        echo -e "     cd /var/tmp           ${GREEN}# 通用${NC}\n" >&2
+        echo -e "  ${BLUE}3. 移动文件并运行：${NC}" >&2
+        echo -e "     mv ~/$binary_name ." >&2
+        echo -e "     chmod +x $binary_name" >&2
+        echo -e "     ./$binary_name 0x0 0x0 0x66 0 7 1 2000\n" >&2
+        echo -e "${YELLOW}尝试继续使用: $work_dir${NC}\n" >&2
     fi
     
     # 切换到工作目录
@@ -157,7 +157,7 @@ download_coremark() {
         exit 1
     }
     
-    echo -e "\n${YELLOW}正在下载 CoreMark ($arch)...${NC}"
+    echo -e "\n${YELLOW}正在下载 CoreMark ($arch)...${NC}" >&2
     
     if command -v wget &> /dev/null; then
         wget -q --show-progress -O "$binary_name" "$download_url" || {
@@ -175,10 +175,11 @@ download_coremark() {
     fi
     
     chmod +x "$binary_name" 2>/dev/null || {
-        echo -e "${YELLOW}警告: 无法设置执行权限，但会尝试运行${NC}"
+        echo -e "${YELLOW}警告: 无法设置执行权限，但会尝试运行${NC}" >&2
     }
     
-    echo -e "${GREEN}下载完成!${NC}\n"
+    echo -e "${GREEN}下载完成!${NC}\n" >&2
+    # 返回二进制文件的完整路径
     echo "$work_dir/$binary_name"
 }
 
