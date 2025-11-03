@@ -139,7 +139,7 @@ cd /share/CACHEDEV1_DATA/temp  # 威联通
 cd /var/tmp  # 其他
 
 # 重新运行
-bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
 ```
 
 ---

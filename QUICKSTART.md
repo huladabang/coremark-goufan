@@ -118,7 +118,7 @@ git push origin v1.0.0
    
    一键运行：
    \`\`\`bash
-   bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+   curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
    \`\`\`
    ```
 7. 点击 "Publish release"
@@ -148,7 +148,7 @@ git push origin v1.0.0
 **x86_64 Linux:**
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
 ```
 
 **手动测试:**
@@ -205,7 +205,7 @@ CoreMark 1.0 : 1233.456 / GCC11.4.0 -O2 -DMULTITHREAD=4 -DUSE_PTHREAD / STACK
 
 <script>
 function copyToClipboard() {
-  const text = 'bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)';
+  const text = 'curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash';
   navigator.clipboard.writeText(text).then(() => {
     alert('命令已复制！');
   });

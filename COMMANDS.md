@@ -10,7 +10,7 @@
 
 ```bash
 # 使用 curl
-bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
 
 # 使用 wget
 bash <(wget -qO- https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)

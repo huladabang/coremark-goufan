@@ -129,7 +129,7 @@ DOWNLOAD_BASE="${REPO_URL}/releases/latest/download"
 
 ```bash
 # 一键运行
-bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
 
 # 或使用 wget
 bash <(wget -qO- https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
@@ -204,7 +204,7 @@ submit_to_api() {
 #### 1. 一键运行 (最简单)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | bash
 ```
 
 #### 2. 手动下载运行
