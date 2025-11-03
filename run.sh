@@ -19,8 +19,13 @@ MIRROR_BASE="https://gou.fan/coremark/releases/latest/download"
 
 # 检测是否在国内
 is_in_china() {
-    if command -v curl >/dev/null 2>&1; then
+    # 尝试访问 GitHub，如果失败则可能在国内
+    if which curl >/dev/null 2>&1 || type curl >/dev/null 2>&1; then
         if ! curl -s --connect-timeout 3 -I https://github.com >/dev/null 2>&1; then
+            return 0
+        fi
+    elif which wget >/dev/null 2>&1 || type wget >/dev/null 2>&1; then
+        if ! wget -q --spider --timeout=3 https://github.com >/dev/null 2>&1; then
             return 0
         fi
     fi
@@ -153,18 +158,36 @@ download_coremark() {
     download_file() {
         url=$1
         output=$2
-        if command -v wget >/dev/null 2>&1; then
-            wget -q --show-progress -O "$output" "$url" 2>&1 || return 1
-        elif command -v curl >/dev/null 2>&1; then
-            curl -f -L --progress-bar -o "$output" "$url" 2>&1 || return 1
-        else
-            printf "${RED}错误: 系统中未找到 wget 或 curl${NC}\n" >&2
+        download_success=0
+        
+        # 优先尝试 wget
+        if which wget >/dev/null 2>&1 || type wget >/dev/null 2>&1; then
+            if wget -q --show-progress -O "$output" "$url" 2>&1; then
+                download_success=1
+            fi
+        fi
+        
+        # 如果 wget 失败或不存在，尝试 curl
+        if [ $download_success -eq 0 ]; then
+            if which curl >/dev/null 2>&1 || type curl >/dev/null 2>&1; then
+                if curl -f -L --progress-bar -o "$output" "$url" 2>&1; then
+                    download_success=1
+                fi
+            fi
+        fi
+        
+        # 如果都失败了
+        if [ $download_success -eq 0 ]; then
+            printf "${RED}下载失败: 无法使用 wget 或 curl 下载文件${NC}\n" >&2
             return 1
         fi
+        
         # 检查文件是否下载成功且不为空
         if [ ! -f "$output" ] || [ ! -s "$output" ]; then
+            printf "${RED}下载失败: 文件为空或不存在${NC}\n" >&2
             return 1
         fi
+        
         return 0
     }
     
