@@ -10,16 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build CoreMark (x86_64)
         run: |
           make PORT_DIR=linux64 \
             XCFLAGS="-O2 -DMULTITHREAD=$(nproc) -DUSE_PTHREAD" \
             LDFLAGS="-pthread"
+          mv coremark coremark_x86_64
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coremark-x86_64
-          path: coremark
+          path: coremark_x86_64
