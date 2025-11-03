@@ -160,17 +160,17 @@ download_coremark() {
         output=$2
         download_success=0
         
-        # 优先尝试 wget
-        if which wget >/dev/null 2>&1 || type wget >/dev/null 2>&1; then
-            if wget -q --show-progress -O "$output" "$url" 2>&1; then
+        # 优先尝试 curl（更可靠，完全静默）
+        if which curl >/dev/null 2>&1 || type curl >/dev/null 2>&1; then
+            if curl -f -L -s -o "$output" "$url" >&2; then
                 download_success=1
             fi
         fi
         
-        # 如果 wget 失败或不存在，尝试 curl
+        # 如果 curl 失败或不存在，尝试 wget（完全静默）
         if [ $download_success -eq 0 ]; then
-            if which curl >/dev/null 2>&1 || type curl >/dev/null 2>&1; then
-                if curl -f -L --progress-bar -o "$output" "$url" 2>&1; then
+            if which wget >/dev/null 2>&1 || type wget >/dev/null 2>&1; then
+                if wget -q -O "$output" "$url" >&2; then
                     download_success=1
                 fi
             fi
