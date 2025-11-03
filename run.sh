@@ -61,24 +61,62 @@ get_cpu_info() {
 
 # 查找可执行目录
 find_executable_dir() {
-    local test_dirs=("/volume1/@tmp" "/var/tmp" "$HOME" "/tmp")
+    # 定义各品牌 NAS 可能的可执行目录
+    local test_dirs=(
+        # 群晖 (Synology DSM)
+        "/volume1/@tmp"
+        "/volume2/@tmp"
+        "/volumeUSB1/usbshare"
+        # 威联通 (QNAP QTS)
+        "/share/CACHEDEV1_DATA/.qpkg"
+        "/share/CACHEDEV1_DATA/temp"
+        "/mnt/HDA_ROOT/.tmp"
+        # 通用 Linux 目录
+        "/var/tmp"
+        "/opt/tmp"
+        "/usr/tmp"
+        # 用户目录
+        "$HOME"
+        "$HOME/tmp"
+        # 最后尝试 /tmp（可能有 noexec）
+        "/tmp"
+    )
     
     for dir in "${test_dirs[@]}"; do
-        if [ -d "$dir" ] && [ -w "$dir" ]; then
-            # 测试是否可以执行
-            local test_file="$dir/.coremark_test_$$"
-            echo "#!/bin/sh" > "$test_file" 2>/dev/null || continue
-            chmod +x "$test_file" 2>/dev/null || continue
-            if [ -x "$test_file" ]; then
-                rm -f "$test_file"
-                echo "$dir"
-                return 0
-            fi
+        # 跳过空路径
+        [ -z "$dir" ] && continue
+        
+        # 检查目录是否存在且可写
+        [ -d "$dir" ] && [ -w "$dir" ] || continue
+        
+        # 创建测试文件
+        local test_file="$dir/.coremark_test_$$"
+        
+        # 尝试写入简单的可执行脚本
+        cat > "$test_file" 2>/dev/null << 'EOF'
+#!/bin/sh
+exit 0
+EOF
+        [ $? -eq 0 ] || continue
+        
+        # 添加执行权限
+        chmod +x "$test_file" 2>/dev/null || {
             rm -f "$test_file" 2>/dev/null
+            continue
+        }
+        
+        # 测试是否真的可以执行
+        if "$test_file" 2>/dev/null; then
+            rm -f "$test_file"
+            echo "$dir"
+            return 0
         fi
+        
+        # 清理测试文件
+        rm -f "$test_file" 2>/dev/null
     done
     
-    # 如果都不行，返回 /tmp 作为后备
+    # 如果都不行，返回 /tmp 作为后备（可能失败，但至少有个地方）
     echo "/tmp"
     return 1
 }
@@ -92,14 +130,30 @@ download_coremark() {
     # 查找可执行目录
     local work_dir=$(find_executable_dir)
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}使用工作目录: ${NC}$work_dir"
+        echo -e "${GREEN}✓ 找到可执行目录: ${NC}$work_dir"
     else
-        echo -e "${YELLOW}警告: 可能遇到权限问题，尝试使用: ${NC}$work_dir"
+        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}  警告：无法找到可执行目录${NC}"
+        echo -e "${RED}========================================${NC}"
+        echo -e "${YELLOW}你的系统可能限制了程序执行。${NC}"
+        echo -e "${YELLOW}请尝试以下手动操作：${NC}\n"
+        echo -e "  ${BLUE}1. 下载二进制文件：${NC}"
+        echo -e "     wget $download_url\n"
+        echo -e "  ${BLUE}2. 找到可写且可执行的目录，例如：${NC}"
+        echo -e "     cd /volume1/@tmp      ${GREEN}# 群晖${NC}"
+        echo -e "     cd /share/CACHEDEV1_DATA/temp  ${GREEN}# 威联通${NC}"
+        echo -e "     cd /var/tmp           ${GREEN}# 通用${NC}\n"
+        echo -e "  ${BLUE}3. 移动文件并运行：${NC}"
+        echo -e "     mv ~/$binary_name ."
+        echo -e "     chmod +x $binary_name"
+        echo -e "     ./$binary_name 0x0 0x0 0x66 0 7 1 2000\n"
+        echo -e "${YELLOW}尝试继续使用: $work_dir${NC}\n"
     fi
     
     # 切换到工作目录
     cd "$work_dir" || {
         echo -e "${RED}无法进入工作目录: $work_dir${NC}" >&2
+        echo -e "${YELLOW}提示: 请检查目录是否存在并有写入权限${NC}" >&2
         exit 1
     }
     
@@ -136,8 +190,45 @@ run_coremark() {
     echo -e "${YELLOW}正在运行 CoreMark 跑分...${NC}"
     echo -e "${YELLOW}这可能需要几分钟时间，请耐心等待...${NC}\n"
     
-    # 运行性能测试
-    ./"$binary" 0x0 0x0 0x66 $iterations 7 1 2000 > coremark_result.log
+    # 检查文件是否存在
+    if [ ! -f "$binary" ]; then
+        echo -e "${RED}错误: 找不到二进制文件 $binary${NC}" >&2
+        exit 1
+    fi
+    
+    # 检查是否有执行权限
+    if [ ! -x "$binary" ]; then
+        echo -e "${YELLOW}警告: 文件没有执行权限，尝试添加...${NC}"
+        chmod +x "$binary" 2>/dev/null || {
+            echo -e "${RED}无法添加执行权限${NC}" >&2
+        }
+    fi
+    
+    # 尝试运行性能测试
+    if ! "$binary" 0x0 0x0 0x66 $iterations 7 1 2000 > coremark_result.log 2>&1; then
+        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}  运行失败！${NC}"
+        echo -e "${RED}========================================${NC}"
+        
+        # 检查是否是权限问题
+        if grep -qi "permission denied" coremark_result.log 2>/dev/null; then
+            echo -e "${YELLOW}可能是文件系统挂载为 noexec（禁止执行）${NC}\n"
+            echo -e "${BLUE}请尝试以下操作：${NC}"
+            echo -e "1. 找到一个允许执行的目录："
+            echo -e "   ${GREEN}群晖:${NC} cd /volume1/@tmp"
+            echo -e "   ${GREEN}威联通:${NC} cd /share/CACHEDEV1_DATA/temp"
+            echo -e "   ${GREEN}其他:${NC} cd /var/tmp 或 cd ~\n"
+            echo -e "2. 重新下载并运行："
+            echo -e "   ${BLUE}wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_$(detect_arch)${NC}"
+            echo -e "   ${BLUE}chmod +x coremark_$(detect_arch)${NC}"
+            echo -e "   ${BLUE}./coremark_$(detect_arch) 0x0 0x0 0x66 0 7 1 2000${NC}\n"
+        else
+            echo -e "${YELLOW}错误信息：${NC}"
+            cat coremark_result.log
+        fi
+        
+        exit 1
+    fi
     
     # 提取分数
     local score=$(grep "CoreMark 1.0" coremark_result.log | grep -oP "CoreMark 1.0 : \K[0-9.]+")
