@@ -324,11 +324,11 @@ main() {
     # 询问是否保留文件
     echo -e -n "${YELLOW}是否保留 CoreMark 二进制文件和结果？(y/N) ${NC}"
     read -r keep_files
-    if [[ ! "$keep_files" =~ ^[Yy]$ ]]; then
+    if [ "$keep_files" = "y" ] || [ "$keep_files" = "Y" ]; then
+        echo -e "${GREEN}文件已保留: $TEMP_BINARY, coremark_result.log${NC}"
+    else
         cleanup
         echo -e "${GREEN}清理完成!${NC}"
-    else
-        echo -e "${GREEN}文件已保留: $TEMP_BINARY, coremark_result.log${NC}"
     fi
     
     echo -e "\n${BLUE}感谢使用狗点饭 CoreMark 跑分工具！${NC}"
