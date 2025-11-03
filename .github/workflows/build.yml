@@ -3,47 +3,23 @@ name: Build CoreMark
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:   # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [x86_64, arm64, armv7]
-
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v3
 
-    - name: Install cross compilers
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
-
-    - name: Build CoreMark
-      run: |
-        if [ "${{ matrix.arch }}" = "x86_64" ]; then
+      - name: Build CoreMark (x86_64)
+        run: |
           make PORT_DIR=linux64 \
             XCFLAGS="-O2 -DMULTITHREAD=$(nproc) -DUSE_PTHREAD" \
             LDFLAGS="-pthread"
-          mv coremark coremark_x86_64
-        elif [ "${{ matrix.arch }}" = "arm64" ]; then
-          make clean
-          make PORT_DIR=linux64 CC=aarch64-linux-gnu-gcc \
-            XCFLAGS="-O2 -DMULTITHREAD=4 -DUSE_PTHREAD" \
-            LDFLAGS="-pthread"
-          mv coremark coremark_arm64
-        elif [ "${{ matrix.arch }}" = "armv7" ]; then
-          make clean
-          make PORT_DIR=linux64 CC=arm-linux-gnueabihf-gcc \
-            XCFLAGS="-O2 -DMULTITHREAD=4 -DUSE_PTHREAD" \
-            LDFLAGS="-pthread"
-          mv coremark coremark_armv7
-        fi
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: coremark-${{ matrix.arch }}
-        path: coremark_*
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: coremark-x86_64
+          path: coremark
