@@ -15,6 +15,20 @@ NC='\033[0m' # No Color
 REPO_URL="https://github.com/huladabang/coremark-goufan"
 DOWNLOAD_BASE="${REPO_URL}/releases/latest/download"
 
+# 备用下载源（狗点饭镜像，国内用户优先使用）
+MIRROR_BASE="https://coremark.gou.fan/releases/latest/download"
+
+# 检测是否在国内
+is_in_china() {
+    # 简单检测：尝试访问 GitHub 是否超时
+    if command -v curl &> /dev/null; then
+        if ! curl -s --connect-timeout 3 -I https://github.com &> /dev/null; then
+            return 0  # 无法访问，可能在国内
+        fi
+    fi
+    return 1  # 可以访问
+}
+
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  狗点饭 NAS CoreMark 跑分工具${NC}"
 echo -e "${BLUE}========================================${NC}\n"
@@ -125,7 +139,18 @@ EOF
 download_coremark() {
     local arch=$1
     local binary_name="coremark_${arch}"
-    local download_url="${DOWNLOAD_BASE}/${binary_name}"
+    
+    # 选择下载源
+    local download_url
+    local source_name
+    if is_in_china; then
+        echo -e "${YELLOW}检测到可能在国内网络环境，使用镜像源...${NC}" >&2
+        download_url="${MIRROR_BASE}/${binary_name}"
+        source_name="狗点饭镜像"
+    else
+        download_url="${DOWNLOAD_BASE}/${binary_name}"
+        source_name="GitHub"
+    fi
     
     # 查找可执行目录
     local work_dir=$(find_executable_dir)
@@ -157,21 +182,47 @@ download_coremark() {
         exit 1
     }
     
-    echo -e "\n${YELLOW}正在下载 CoreMark ($arch)...${NC}" >&2
+    echo -e "\n${YELLOW}正在从 ${source_name} 下载 CoreMark ($arch)...${NC}" >&2
     
-    if command -v wget &> /dev/null; then
-        wget -q --show-progress -O "$binary_name" "$download_url" || {
-            echo -e "${RED}下载失败!${NC}" >&2
+    # 定义下载函数
+    download_file() {
+        local url=$1
+        local output=$2
+        if command -v wget &> /dev/null; then
+            wget -q --show-progress -O "$output" "$url" 2>&1
+        elif command -v curl &> /dev/null; then
+            curl -L --progress-bar -o "$output" "$url" 2>&1
+        else
+            return 1
+        fi
+    }
+    
+    # 尝试下载
+    if ! download_file "$download_url" "$binary_name"; then
+        echo -e "${YELLOW}下载失败，尝试备用源...${NC}" >&2
+        
+        # 切换到备用源
+        if [ "$source_name" = "狗点饭镜像" ]; then
+            download_url="${DOWNLOAD_BASE}/${binary_name}"
+            source_name="GitHub"
+        else
+            download_url="${MIRROR_BASE}/${binary_name}"
+            source_name="狗点饭镜像"
+        fi
+        
+        echo -e "${YELLOW}正在从 ${source_name} 下载...${NC}" >&2
+        
+        if ! download_file "$download_url" "$binary_name"; then
+            echo -e "${RED}========================================${NC}" >&2
+            echo -e "${RED}  下载失败！${NC}" >&2
+            echo -e "${RED}========================================${NC}" >&2
+            echo -e "${YELLOW}请尝试以下手动操作：${NC}\n" >&2
+            echo -e "1. 访问以下链接手动下载：" >&2
+            echo -e "   ${BLUE}https://github.com/huladabang/coremark-goufan/releases/latest${NC}" >&2
+            echo -e "   ${BLUE}https://coremark.gou.fan/releases/latest/download/${binary_name}${NC}\n" >&2
+            echo -e "2. 或使用代理后重试" >&2
             exit 1
-        }
-    elif command -v curl &> /dev/null; then
-        curl -L --progress-bar -o "$binary_name" "$download_url" || {
-            echo -e "${RED}下载失败!${NC}" >&2
-            exit 1
-        }
-    else
-        echo -e "${RED}错误: 需要 wget 或 curl 来下载文件${NC}" >&2
-        exit 1
+        fi
     fi
     
     chmod +x "$binary_name" 2>/dev/null || {
