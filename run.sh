@@ -59,11 +59,49 @@ get_cpu_info() {
     fi
 }
 
+# 查找可执行目录
+find_executable_dir() {
+    local test_dirs=("/volume1/@tmp" "/var/tmp" "$HOME" "/tmp")
+    
+    for dir in "${test_dirs[@]}"; do
+        if [ -d "$dir" ] && [ -w "$dir" ]; then
+            # 测试是否可以执行
+            local test_file="$dir/.coremark_test_$$"
+            echo "#!/bin/sh" > "$test_file" 2>/dev/null || continue
+            chmod +x "$test_file" 2>/dev/null || continue
+            if [ -x "$test_file" ]; then
+                rm -f "$test_file"
+                echo "$dir"
+                return 0
+            fi
+            rm -f "$test_file" 2>/dev/null
+        fi
+    done
+    
+    # 如果都不行，返回 /tmp 作为后备
+    echo "/tmp"
+    return 1
+}
+
 # 下载二进制文件
 download_coremark() {
     local arch=$1
     local binary_name="coremark_${arch}"
     local download_url="${DOWNLOAD_BASE}/${binary_name}"
+    
+    # 查找可执行目录
+    local work_dir=$(find_executable_dir)
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}使用工作目录: ${NC}$work_dir"
+    else
+        echo -e "${YELLOW}警告: 可能遇到权限问题，尝试使用: ${NC}$work_dir"
+    fi
+    
+    # 切换到工作目录
+    cd "$work_dir" || {
+        echo -e "${RED}无法进入工作目录: $work_dir${NC}" >&2
+        exit 1
+    }
     
     echo -e "\n${YELLOW}正在下载 CoreMark ($arch)...${NC}"
     
@@ -82,9 +120,12 @@ download_coremark() {
         exit 1
     fi
     
-    chmod +x "$binary_name"
+    chmod +x "$binary_name" 2>/dev/null || {
+        echo -e "${YELLOW}警告: 无法设置执行权限，但会尝试运行${NC}"
+    }
+    
     echo -e "${GREEN}下载完成!${NC}\n"
-    echo "$binary_name"
+    echo "$work_dir/$binary_name"
 }
 
 # 运行 CoreMark
