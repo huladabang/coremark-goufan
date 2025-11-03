@@ -76,25 +76,8 @@ get_cpu_info() {
 # 查找可执行目录
 find_executable_dir() {
     # 定义各品牌 NAS 可能的可执行目录
-    local test_dirs=(
-        # 群晖 (Synology DSM)
-        "/volume1/@tmp"
-        "/volume2/@tmp"
-        "/volumeUSB1/usbshare"
-        # 威联通 (QNAP QTS)
-        "/share/CACHEDEV1_DATA/.qpkg"
-        "/share/CACHEDEV1_DATA/temp"
-        "/mnt/HDA_ROOT/.tmp"
-        # 通用 Linux 目录
-        "/var/tmp"
-        "/opt/tmp"
-        "/usr/tmp"
-        # 用户目录
-        "$HOME"
-        "$HOME/tmp"
-        # 最后尝试 /tmp（可能有 noexec）
-        "/tmp"
-    )
+    local test_dirs
+    test_dirs=("/volume1/@tmp" "/volume2/@tmp" "/volumeUSB1/usbshare" "/share/CACHEDEV1_DATA/.qpkg" "/share/CACHEDEV1_DATA/temp" "/mnt/HDA_ROOT/.tmp" "/var/tmp" "/opt/tmp" "/usr/tmp" "$HOME" "$HOME/tmp" "/tmp")
     
     for dir in "${test_dirs[@]}"; do
         # 跳过空路径
