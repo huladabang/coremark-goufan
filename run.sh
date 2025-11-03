@@ -21,8 +21,8 @@ MIRROR_BASE="https://gou.fan/coremark/releases/latest/download"
 # 检测是否在国内
 is_in_china() {
     # 简单检测：尝试访问 GitHub 是否超时
-    if command -v curl &> /dev/null; then
-        if ! curl -s --connect-timeout 3 -I https://github.com &> /dev/null; then
+    if command -v curl >/dev/null 2>&1; then
+        if ! curl -s --connect-timeout 3 -I https://github.com >/dev/null 2>&1; then
             return 0  # 无法访问，可能在国内
         fi
     fi
@@ -107,27 +107,27 @@ find_executable_dir() {
         local test_file="$dir/.coremark_test_$$"
         
         # 尝试写入简单的可执行脚本
-        cat > "$test_file" 2>/dev/null << 'EOF'
+        cat > "$test_file" 2>/dev/null <<'EOF'
 #!/bin/sh
 exit 0
 EOF
         [ $? -eq 0 ] || continue
         
         # 添加执行权限
-        chmod +x "$test_file" 2>/dev/null || {
-            rm -f "$test_file" 2>/dev/null
+        chmod +x "$test_file" >/dev/null 2>&1 || {
+            rm -f "$test_file" >/dev/null 2>&1
             continue
         }
         
         # 测试是否真的可以执行
-        if "$test_file" 2>/dev/null; then
+        if "$test_file" >/dev/null 2>&1; then
             rm -f "$test_file"
             echo "$dir"
             return 0
         fi
         
         # 清理测试文件
-        rm -f "$test_file" 2>/dev/null
+        rm -f "$test_file" >/dev/null 2>&1
     done
     
     # 如果都不行，返回 /tmp 作为后备（可能失败，但至少有个地方）
@@ -188,9 +188,9 @@ download_coremark() {
     download_file() {
         local url=$1
         local output=$2
-        if command -v wget &> /dev/null; then
+        if command -v wget >/dev/null 2>&1; then
             wget -q --show-progress -O "$output" "$url" 2>&1
-        elif command -v curl &> /dev/null; then
+        elif command -v curl >/dev/null 2>&1; then
             curl -L --progress-bar -o "$output" "$url" 2>&1
         else
             return 1
@@ -225,7 +225,7 @@ download_coremark() {
         fi
     fi
     
-    chmod +x "$binary_name" 2>/dev/null || {
+    chmod +x "$binary_name" >/dev/null 2>&1 || {
         echo -e "${YELLOW}警告: 无法设置执行权限，但会尝试运行${NC}" >&2
     }
     
@@ -251,7 +251,7 @@ run_coremark() {
     # 检查是否有执行权限
     if [ ! -x "$binary" ]; then
         echo -e "${YELLOW}警告: 文件没有执行权限，尝试添加...${NC}"
-        chmod +x "$binary" 2>/dev/null || {
+        chmod +x "$binary" >/dev/null 2>&1 || {
             echo -e "${RED}无法添加执行权限${NC}" >&2
         }
     fi
@@ -263,7 +263,7 @@ run_coremark() {
         echo -e "${RED}========================================${NC}"
         
         # 检查是否是权限问题
-        if grep -qi "permission denied" coremark_result.log 2>/dev/null; then
+        if grep -qi "permission denied" coremark_result.log >/dev/null 2>&1; then
             echo -e "${YELLOW}可能是文件系统挂载为 noexec（禁止执行）${NC}\n"
             echo -e "${BLUE}请尝试以下操作：${NC}"
             echo -e "1. 找到一个允许执行的目录："
