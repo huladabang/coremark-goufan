@@ -16,7 +16,7 @@ REPO_URL="https://github.com/huladabang/coremark-goufan"
 DOWNLOAD_BASE="${REPO_URL}/releases/latest/download"
 
 # 备用下载源（狗点饭镜像，国内用户优先使用）
-MIRROR_BASE="https://coremark.gou.fan/releases/latest/download"
+MIRROR_BASE="https://gou.fan/coremark/releases/latest/download"
 
 # 检测是否在国内
 is_in_china() {
