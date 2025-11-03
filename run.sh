@@ -4,11 +4,12 @@
 
 set -e
 
-# 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
+# 颜色输出（柔和配色）
+RED='\033[0;91m'
+GREEN='\033[0;92m'
+YELLOW='\033[0;93m'
+BLUE='\033[0;94m'
+CYAN='\033[0;96m'
 NC='\033[0m'
 
 # 配置
@@ -153,12 +154,18 @@ download_coremark() {
         url=$1
         output=$2
         if command -v wget >/dev/null 2>&1; then
-            wget -q --show-progress -O "$output" "$url" 2>&1
+            wget -q --show-progress -O "$output" "$url" 2>&1 || return 1
         elif command -v curl >/dev/null 2>&1; then
-            curl -L --progress-bar -o "$output" "$url" 2>&1
+            curl -f -L --progress-bar -o "$output" "$url" 2>&1 || return 1
         else
+            printf "${RED}错误: 系统中未找到 wget 或 curl${NC}\n" >&2
             return 1
         fi
+        # 检查文件是否下载成功且不为空
+        if [ ! -f "$output" ] || [ ! -s "$output" ]; then
+            return 1
+        fi
+        return 0
     }
     
     if ! download_file "$download_url" "$binary_name"; then
@@ -177,11 +184,21 @@ download_coremark() {
             printf "${RED}========================================${NC}\n" >&2
             printf "${RED} 下载失败！${NC}\n" >&2
             printf "${RED}========================================${NC}\n" >&2
-            printf "${YELLOW}请尝试以下手动操作：${NC}\n\n" >&2
-            printf "1. 访问以下链接手动下载：\n" >&2
-            printf " ${BLUE}https://github.com/huladabang/coremark-goufan/releases/latest${NC}\n" >&2
-            printf " ${BLUE}https://gou.fan/coremark/releases/latest/download/%s${NC}\n\n" "$binary_name" >&2
-            printf "2. 或使用代理后重试\n" >&2
+            printf "${CYAN}诊断信息：${NC}\n" >&2
+            printf "  GitHub 下载地址: ${DOWNLOAD_BASE}/${binary_name}\n" >&2
+            printf "  镜像下载地址: ${MIRROR_BASE}/${binary_name}\n\n" >&2
+            printf "${YELLOW}请尝试手动诊断：${NC}\n\n" >&2
+            printf "1. 测试网络连接：\n" >&2
+            printf "   ${CYAN}curl -I https://github.com${NC}\n" >&2
+            printf "   ${CYAN}curl -I https://gou.fan${NC}\n\n" >&2
+            printf "2. 手动下载测试：\n" >&2
+            printf "   ${CYAN}curl -I ${DOWNLOAD_BASE}/${binary_name}${NC}\n" >&2
+            printf "   ${CYAN}curl -I ${MIRROR_BASE}/${binary_name}${NC}\n\n" >&2
+            printf "3. 访问以下链接手动下载：\n" >&2
+            printf "   ${BLUE}https://github.com/huladabang/coremark-goufan/releases/latest${NC}\n\n" >&2
+            printf "4. 如果有代理，设置后重试：\n" >&2
+            printf "   ${CYAN}export http_proxy=http://your-proxy:port${NC}\n" >&2
+            printf "   ${CYAN}export https_proxy=http://your-proxy:port${NC}\n" >&2
             exit 1
         fi
     fi
