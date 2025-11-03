@@ -1,6 +1,6 @@
 #!/bin/sh
-# CoreMark 一键运行脚本 - 狗点饭 NAS 性能跑分
-# 使用方法: curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | sh
+# CoreMark 一键运行脚本 - 狗点饭镜像版
+# 使用方法: curl -fsSL https://gou.fan/coremark/run-mirror.sh | sh
 
 set -e
 
@@ -12,12 +12,12 @@ BLUE='\033[0;94m'
 CYAN='\033[0;96m'
 NC='\033[0m'
 
-# 配置
-REPO_URL="https://github.com/huladabang/coremark-goufan"
-DOWNLOAD_BASE="${REPO_URL}/releases/latest/download"
+# 配置 - 使用狗点饭镜像源
+DOWNLOAD_BASE="https://gou.fan/coremark/releases/latest/download"
 
 printf "${BLUE}========================================${NC}\n"
 printf "${BLUE}  狗点饭 NAS CoreMark 跑分工具${NC}\n"
+printf "${BLUE}  (国内镜像加速版)${NC}\n"
 printf "${BLUE}========================================${NC}\n\n"
 
 # 检测架构
@@ -128,7 +128,7 @@ download_coremark() {
         exit 1
     }
     
-    printf "\n${YELLOW}正在从 GitHub 下载 CoreMark (%s)...${NC}\n" "$arch" >&2
+    printf "\n${YELLOW}正在从狗点饭镜像下载 CoreMark (%s)...${NC}\n" "$arch" >&2
     
     download_success=0
     
@@ -157,9 +157,9 @@ download_coremark() {
         printf "${YELLOW}请尝试以下操作：${NC}\n\n" >&2
         printf "1. 检查网络连接\n" >&2
         printf "2. 手动下载：\n" >&2
-        printf "   ${BLUE}https://github.com/huladabang/coremark-goufan/releases/latest${NC}\n\n" >&2
-        printf "3. 或使用国内镜像脚本：\n" >&2
-        printf "   ${CYAN}curl -fsSL https://gou.fan/coremark/run-mirror.sh | sh${NC}\n" >&2
+        printf "   ${BLUE}https://gou.fan/coremark/releases/latest/download/${binary_name}${NC}\n\n" >&2
+        printf "3. 或使用 GitHub 官方脚本：\n" >&2
+        printf "   ${CYAN}curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh | sh${NC}\n" >&2
         exit 1
     fi
     
@@ -211,7 +211,7 @@ run_coremark() {
             printf " ${GREEN}其他:${NC} cd /var/tmp 或 cd ~\n\n"
             printf "2. 重新下载并运行：\n"
             arch=$(detect_arch)
-            printf " ${BLUE}wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_%s${NC}\n" "$arch"
+            printf " ${BLUE}wget https://gou.fan/coremark/releases/latest/download/coremark_%s${NC}\n" "$arch"
             printf " ${BLUE}chmod +x coremark_%s${NC}\n" "$arch"
             printf " ${BLUE}./coremark_%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch"
         else
@@ -279,3 +279,4 @@ main() {
 trap cleanup EXIT INT TERM
 
 main
+
