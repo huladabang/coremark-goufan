@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAS 性能跑分 - 狗点饭</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .quick-start {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+
+        .command-box {
+            background: #2d3748;
+            color: #48bb78;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            position: relative;
+            font-family: "Monaco", "Courier New", monospace;
+            overflow-x: auto;
+        }
+
+        .command-box code {
+            display: block;
+            white-space: pre;
+            color: #48bb78;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .copy-btn:active {
+            background: #48bb78;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .download-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .download-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-item .arch-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .download-item .arch-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .feature p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+        }
+
+        .leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .leaderboard td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .leaderboard tr:hover {
+            background: #f7fafc;
+        }
+
+        .rank {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+
+        .rank.gold { color: #ffd700; }
+        .rank.silver { color: #c0c0c0; }
+        .rank.bronze { color: #cd7f32; }
+
+        .score {
+            font-weight: bold;
+            color: #48bb78;
+        }
+
+        .submit-btn {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover {
+            background: #38a169;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NAS 性能跑分工具</h1>
+            <p>一键测试你的 NAS/服务器 性能 | 基于 CoreMark 标准测试</p>
+        </div>
+
+        <!-- 快速开始 -->
+        <div class="card">
+            <h2>⚡ 一键运行跑分</h2>
+            <div class="quick-start">
+                <p style="margin-bottom: 15px; color: #666;">
+                    <strong>最简单的方式！</strong>在你的 NAS 或 Linux 设备上执行以下命令：
+                </p>
+                <div class="command-box">
+                    <code id="curl-command">bash &lt;(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)</code>
+                    <button class="copy-btn" onclick="copyCommand('curl-command')">复制</button>
+                </div>
+                <p style="margin-top: 15px; color: #666;">
+                    或者使用 wget：
+                </p>
+                <div class="command-box">
+                    <code id="wget-command">bash &lt;(wget -qO- https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)</code>
+                    <button class="copy-btn" onclick="copyCommand('wget-command')">复制</button>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="icon">🎯</div>
+                    <h3>自动识别</h3>
+                    <p>自动检测 CPU 架构</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">⚡</div>
+                    <h3>快速测试</h3>
+                    <p>几分钟内完成跑分</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">📊</div>
+                    <h3>详细报告</h3>
+                    <p>完整的性能数据</p>
+                </div>
+                <div class="feature">
+                    <div class="icon">🔒</div>
+                    <h3>安全可靠</h3>
+                    <p>开源透明，可审计</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 手动下载 -->
+        <div class="card">
+            <h2>📥 手动下载</h2>
+            <p style="margin-bottom: 20px; color: #666;">
+                如果你更喜欢手动下载并运行，请选择对应的 CPU 架构：
+            </p>
+            <div class="download-grid">
+                <a href="https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_x86_64" 
+                   class="download-item" 
+                   download>
+                    <div class="arch-name">x86_64</div>
+                    <div class="arch-desc">Intel / AMD 64位</div>
+                </a>
+                <a href="https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_arm64" 
+                   class="download-item" 
+                   download>
+                    <div class="arch-name">ARM64</div>
+                    <div class="arch-desc">树莓派 4/5, 群晖等</div>
+                </a>
+                <a href="https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_armv7" 
+                   class="download-item" 
+                   download>
+                    <div class="arch-name">ARMv7</div>
+                    <div class="arch-desc">树莓派 2/3 等</div>
+                </a>
+            </div>
+            <div class="quick-start" style="margin-top: 20px;">
+                <p style="margin-bottom: 10px;"><strong>使用方法：</strong></p>
+                <div class="command-box">
+                    <code>wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_x86_64
+chmod +x coremark_x86_64
+./coremark_x86_64 0x0 0x0 0x66 0 7 1 2000</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能排行榜 -->
+        <div class="card">
+            <h2>🏆 性能排行榜</h2>
+            <div class="leaderboard">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>设备/CPU</th>
+                            <th>架构</th>
+                            <th>核心</th>
+                            <th>分数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="rank gold">🥇 1</td>
+                            <td>Intel i9-13900K</td>
+                            <td>x86_64</td>
+                            <td>24</td>
+                            <td class="score">82,456</td>
+                        </tr>
+                        <tr>
+                            <td class="rank silver">🥈 2</td>
+                            <td>AMD Ryzen 9 7950X</td>
+                            <td>x86_64</td>
+                            <td>16</td>
+                            <td class="score">78,234</td>
+                        </tr>
+                        <tr>
+                            <td class="rank bronze">🥉 3</td>
+                            <td>Intel i7-12700K</td>
+                            <td>x86_64</td>
+                            <td>12</td>
+                            <td class="score">64,891</td>
+                        </tr>
+                        <tr>
+                            <td class="rank">4</td>
+                            <td>群晖 DS923+ (Ryzen R1600)</td>
+                            <td>x86_64</td>
+                            <td>4</td>
+                            <td class="score">28,567</td>
+                        </tr>
+                        <tr>
+                            <td class="rank">5</td>
+                            <td>群晖 DS920+ (Celeron J4125)</td>
+                            <td>x86_64</td>
+                            <td>4</td>
+                            <td class="score">14,234</td>
+                        </tr>
+                        <tr>
+                            <td class="rank">6</td>
+                            <td>树莓派 5 (BCM2712)</td>
+                            <td>ARM64</td>
+                            <td>4</td>
+                            <td class="score">12,890</td>
+                        </tr>
+                        <tr>
+                            <td class="rank">7</td>
+                            <td>树莓派 4B (BCM2711)</td>
+                            <td>ARM64</td>
+                            <td>4</td>
+                            <td class="score">6,234</td>
+                        </tr>
+                        <tr>
+                            <td class="rank">8</td>
+                            <td>树莓派 3B+ (BCM2837B0)</td>
+                            <td>ARMv7</td>
+                            <td>4</td>
+                            <td class="score">4,567</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="submit-btn" onclick="showSubmitForm()">📤 提交我的跑分结果</button>
+        </div>
+
+        <!-- 关于 -->
+        <div class="card">
+            <h2>ℹ️ 关于 CoreMark</h2>
+            <p style="color: #666; line-height: 1.8;">
+                CoreMark 是由 EEMBC (Embedded Microprocessor Benchmark Consortium) 开发的标准化 CPU 性能测试基准。
+                它测试处理器的整数运算、控制流、字符串处理等核心能力，是业界广泛认可的性能评估标准。
+            </p>
+            <p style="color: #666; line-height: 1.8; margin-top: 15px;">
+                <strong>为什么选择 CoreMark？</strong><br>
+                • 标准化：全球统一的测试标准，结果可比较<br>
+                • 全面：测试多个方面的 CPU 性能<br>
+                • 快速：几分钟内完成测试<br>
+                • 开源：代码公开透明
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>💝 Made with love by 狗点饭</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/huladabang/coremark-goufan" style="color: white;">GitHub</a> | 
+                <a href="https://gou.fan" style="color: white;">官网</a> | 
+                <a href="https://github.com/huladabang/coremark-goufan/issues" style="color: white;">反馈</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function copyCommand(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            // 解码 HTML 实体
+            const decodedText = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            
+            navigator.clipboard.writeText(decodedText).then(() => {
+                showToast('✅ 命令已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                // 降级方案
+                fallbackCopy(decodedText);
+            });
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('✅ 命令已复制到剪贴板！');
+            } catch (err) {
+                showToast('❌ 复制失败，请手动复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showSubmitForm() {
+            // 这里可以打开一个模态框或跳转到提交页面
+            alert('提交功能即将上线！\n\n请暂时通过 GitHub Issues 提交你的跑分结果：\nhttps://github.com/huladabang/coremark-goufan/issues');
+        }
+    </script>
+</body>
+</html>
+

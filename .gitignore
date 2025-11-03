@@ -1,0 +1,33 @@
+# CoreMark 编译产物
+*.exe
+*.o
+*.log
+coremark
+coremark_x86_64
+coremark_arm64
+coremark_armv7
+
+# 临时文件
+*.tmp
+*.swp
+*~
+
+# 性能分析文件
+*.gcda
+*.gcno
+gmon.out
+
+# IDE 配置
+.vscode/
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# 测试结果
+run1.log
+run2.log
+run3.log
+coremark_result.log
+

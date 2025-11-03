@@ -1,26 +1,78 @@
-name: Build CoreMark
+name: 构建多平台 CoreMark
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
   workflow_dispatch:
 
 jobs:
   build:
+    name: 构建 CoreMark
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            cc: gcc
+            output: coremark_x86_64
+          - arch: aarch64
+            cc: aarch64-linux-gnu-gcc
+            output: coremark_arm64
+          - arch: armv7
+            cc: arm-linux-gnueabihf-gcc
+            output: coremark_armv7
+    
     steps:
-      - name: Checkout source
+      - name: 检出代码
         uses: actions/checkout@v4
-
-      - name: Build CoreMark (x86_64)
+      
+      - name: 安装交叉编译工具链
+        if: matrix.arch != 'x86_64'
         run: |
-          make PORT_DIR=linux64 \
-            XCFLAGS="-O2 -DMULTITHREAD=$(nproc) -DUSE_PTHREAD" \
-            LDFLAGS="-pthread"
-          mv coremark coremark_x86_64
-
-      - name: Upload artifact
+          sudo apt-get update
+          if [ "${{ matrix.arch }}" = "aarch64" ]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+          elif [ "${{ matrix.arch }}" = "armv7" ]; then
+            sudo apt-get install -y gcc-arm-linux-gnueabihf
+          fi
+      
+      - name: 获取CPU核心数
+        id: get_nproc
+        run: echo "nproc=$(nproc)" >> $GITHUB_OUTPUT
+      
+      - name: 编译 CoreMark (${{ matrix.arch }})
+        run: |
+          make PORT_DIR=linux \
+            CC=${{ matrix.cc }} \
+            XCFLAGS="-O2 -DMULTITHREAD=${{ steps.get_nproc.outputs.nproc }} -DUSE_PTHREAD -static" \
+            LFLAGS_END="-pthread" \
+            compile
+      
+      - name: 重命名二进制文件
+        run: |
+          mv ./coremark.exe ./${{ matrix.output }}
+          chmod +x ./${{ matrix.output }}
+      
+      - name: 验证编译结果
+        run: |
+          file ./${{ matrix.output }}
+          ls -lh ./${{ matrix.output }}
+      
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: coremark-x86_64
-          path: coremark_x86_64
+          name: ${{ matrix.output }}
+          path: ./${{ matrix.output }}
+          retention-days: 90
+      
+      - name: 上传到 Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./${{ matrix.output }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

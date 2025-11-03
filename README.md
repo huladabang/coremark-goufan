@@ -1,3 +1,93 @@
+# CoreMark - 狗点饭 NAS 性能跑分工具 🚀
+
+> 一键测试你的 NAS/服务器 CPU 性能 | 基于 CoreMark 标准测试
+
+[![构建状态](https://github.com/huladabang/coremark-goufan/workflows/构建多平台%20CoreMark/badge.svg)](https://github.com/huladabang/coremark-goufan/actions)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE.md)
+
+---
+
+## 🎯 快速开始
+
+### 一键运行 (推荐)
+
+在你的 NAS 或 Linux 设备上执行以下命令：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+```
+
+或使用 wget：
+
+```bash
+bash <(wget -qO- https://raw.githubusercontent.com/huladabang/coremark-goufan/main/run.sh)
+```
+
+### 手动下载
+
+根据你的 CPU 架构选择对应版本：
+
+- **x86_64** (Intel/AMD): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_x86_64)
+- **ARM64** (aarch64): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_arm64)
+- **ARMv7** (armhf): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_armv7)
+
+```bash
+# 下载并运行 (以 x86_64 为例)
+wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_x86_64
+chmod +x coremark_x86_64
+./coremark_x86_64 0x0 0x0 0x66 0 7 1 2000
+```
+
+## 📚 文档
+
+- **[使用指南](USAGE.md)** - 完整的使用说明和常见问题
+- **[部署指南](DEPLOY.md)** - GitHub Actions 配置和网站集成
+- **[网站示例](website-example.html)** - 网站集成示例代码
+
+## 🌟 特性
+
+- ✅ **一键运行** - 无需编译，自动识别架构
+- ✅ **多平台支持** - x86_64, ARM64, ARMv7
+- ✅ **自动构建** - GitHub Actions 自动编译最新版本
+- ✅ **多线程优化** - 充分利用多核性能
+- ✅ **静态链接** - 最大化兼容性，适用于各种 Linux 发行版
+
+## 📊 支持的平台
+
+| 平台 | 架构 | 状态 |
+|------|------|------|
+| Intel/AMD 64位 | x86_64 | ✅ |
+| ARM 64位 (树莓派 4/5, 群晖 DS920+) | ARM64 | ✅ |
+| ARM 32位 (树莓派 2/3) | ARMv7 | ✅ |
+
+支持的操作系统：Ubuntu, Debian, CentOS, 群晖 DSM, 威联通 QTS, OpenWrt, 树莓派 OS 等
+
+## 🔧 技术细节
+
+### 编译配置
+
+- **优化级别**: `-O2`
+- **多线程**: `-DMULTITHREAD=$(nproc) -DUSE_PTHREAD`
+- **链接选项**: `-pthread -static`
+- **PORT_DIR**: `linux`
+
+### GitHub Actions 自动构建
+
+每次推送到 main 分支或创建 Release 时，GitHub Actions 会自动编译三个架构的二进制文件并上传到 Releases。
+
+查看 [`.github/workflows/build.yml`](.github/workflows/build.yml) 了解构建流程。
+
+## 💝 贡献
+
+欢迎提交问题和 Pull Request！
+
+## 🔗 相关链接
+
+- **狗点饭网站**: [https://gou.fan](https://gou.fan)
+- **问题反馈**: [GitHub Issues](https://github.com/huladabang/coremark-goufan/issues)
+- **CoreMark 官方**: [www.eembc.org/coremark](https://www.eembc.org/coremark/)
+
+---
 
 # Introduction
 
