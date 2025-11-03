@@ -78,7 +78,7 @@ chmod +x coremark_arm64
 
 ## 🔧 技术细节
 
-- **优化级别**: `-O2`
+- **优化级别**: `-O3` (激进优化，追求极致性能)
 - **多线程**: `-DMULTITHREAD=$(nproc) -DUSE_PTHREAD`
 - **链接选项**: `-pthread -static`
 

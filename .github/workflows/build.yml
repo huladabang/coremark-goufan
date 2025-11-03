@@ -48,7 +48,7 @@ jobs:
         run: |
           make PORT_DIR=linux \
             CC=${{ matrix.cc }} \
-            XCFLAGS="-O2 -DMULTITHREAD=${{ steps.get_nproc.outputs.nproc }} -DUSE_PTHREAD -static" \
+            XCFLAGS="-O3 -DMULTITHREAD=${{ steps.get_nproc.outputs.nproc }} -DUSE_PTHREAD -static" \
             LFLAGS_END="-pthread" \
             compile
       
