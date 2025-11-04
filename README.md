@@ -40,21 +40,11 @@ wget -qO- https://gou.fan/coremark/run-mirror.sh | sh
 
 根据你的 CPU 架构选择对应版本：
 
-**GitHub 下载：**
-- **x86_64** (Intel/AMD): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_x86_64)
-- **ARM64** (aarch64): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_arm64)
-- **ARMv7** (armhf): [下载](https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_armv7)
-
-**狗点饭镜像：**
-- **x86_64**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_x86_64)
-- **ARM64**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_arm64)
-- **ARMv7**: [下载](https://gou.fan/coremark/releases/latest/download/coremark_armv7)
-
 ```bash
-# 下载并运行 (以 ARM64 为例)
+# 在线下载并运行 (以 ARM64 为例)或者在releases下载并上传
 wget https://gou.fan/coremark/releases/latest/download/coremark_arm64
 chmod +x coremark_arm64
-./coremark_arm64 0x0 0x0 0x66 0 7 1 2000
+./coremark_arm64 
 ```
 
 ## 🌟 特性
@@ -74,7 +64,7 @@ chmod +x coremark_arm64
 | ARM 64位 | ARM64 | ✅ | 华硕 RT-BE86U, 树莓派 4/5 |
 | ARM 32位 | ARMv7 | ✅ | 树莓派 2/3, Netcore N60 PRO |
 
-**支持的系统：** Ubuntu, Debian, CentOS, 群晖 DSM, 威联通 QTS, OpenWrt, 梅林固件, ImmortalWrt 等
+**支持的系统：** Ubuntu, Debian, 群晖 DSM, 威联通 QTS, OpenWrt, 华硕路由器, 梅林固件, ImmortalWrt 等
 
 ## 🔧 技术细节
 
