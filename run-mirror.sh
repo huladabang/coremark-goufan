@@ -182,7 +182,11 @@ run_coremark() {
     binary=$1
     iterations=${2:-0}
     
+    # 检测逻辑核心数（包括超线程）
+    cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
+    
     printf "${YELLOW}正在运行 CoreMark 跑分...${NC}\n"
+    printf "${YELLOW}使用 ${cpu_threads} 个线程 (逻辑核心数)${NC}\n"
     printf "${YELLOW}这可能需要几分钟时间，请耐心等待...${NC}\n\n"
     
     if [ ! -f "$binary" ]; then
@@ -197,7 +201,8 @@ run_coremark() {
         }
     fi
     
-    if ! "$binary" 0x0 0x0 0x66 $iterations 7 1 2000 > coremark_result.log 2>&1; then
+    # 使用 M<n> 参数指定线程数，充分利用超线程
+    if ! "$binary" "M${cpu_threads}" 0x0 0x0 0x66 $iterations 7 1 2000 > coremark_result.log 2>&1; then
         printf "${RED}========================================${NC}\n"
         printf "${RED} 运行失败！${NC}\n"
         printf "${RED}========================================${NC}\n"
@@ -211,9 +216,10 @@ run_coremark() {
             printf " ${GREEN}其他:${NC} cd /var/tmp 或 cd ~\n\n"
             printf "2. 重新下载并运行：\n"
             arch=$(detect_arch)
+            cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
             printf " ${BLUE}wget https://gou.fan/coremark/releases/latest/download/coremark_%s${NC}\n" "$arch"
             printf " ${BLUE}chmod +x coremark_%s${NC}\n" "$arch"
-            printf " ${BLUE}./coremark_%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch"
+            printf " ${BLUE}./coremark_%s M%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch" "$cpu_threads"
         else
             printf "${YELLOW}错误信息：${NC}\n"
             cat coremark_result.log

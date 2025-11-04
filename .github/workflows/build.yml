@@ -42,16 +42,12 @@ jobs:
             sudo apt-get install -y gcc-arm-linux-gnueabihf
           fi
       
-      - name: 获取CPU核心数
-        id: get_nproc
-        run: echo "nproc=$(nproc)" >> $GITHUB_OUTPUT
-      
       - name: 编译 CoreMark (${{ matrix.arch }})
         run: |
           make PORT_DIR=linux \
             CC=${{ matrix.cc }} \
             PORT_CFLAGS="-O3" \
-            XCFLAGS="-DMULTITHREAD=${{ steps.get_nproc.outputs.nproc }} -DUSE_PTHREAD -static" \
+            XCFLAGS="-DMULTITHREAD=64 -DUSE_PTHREAD -static" \
             LFLAGS_END="-pthread" \
             compile
       
