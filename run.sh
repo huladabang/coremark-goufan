@@ -243,8 +243,12 @@ submit_result() {
     printf "\n${YELLOW}========================================${NC}\n"
     printf "${YELLOW} 想要提交你的跑分结果？${NC}\n"
     printf "${YELLOW}========================================${NC}\n"
-    printf "访问 ${BLUE}https://gou.fan${NC} 提交你的跑分数据\n"
-    printf "帮助我们完善 NAS 性能排行榜！\n\n"
+    printf "📸 ${GREEN}请截图保存上方完整的跑分结果${NC}\n"
+    printf "🌐 ${GREEN}然后访问提交页面：${NC}\n"
+    printf "   ${BLUE}https://gou.fan/coremark/submit${NC}\n\n"
+    printf "💡 ${CYAN}提交后需管理员审核，通过后将会显示在${NC}\n"
+    printf "   ${CYAN}NAS 存储 CPU 性能天梯图中！${NC}\n"
+    printf "   感谢你帮助我们完善 NAS 性能排行榜！\n\n"
 }
 
 # 清理临时文件
