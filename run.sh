@@ -182,6 +182,14 @@ run_coremark() {
     binary=$1
     iterations=${2:-0}
     
+    # 从二进制文件路径提取工作目录，并切换到该目录
+    # 这样日志文件会创建在正确的位置
+    work_dir=$(dirname "$binary")
+    cd "$work_dir" || {
+        printf "${RED}错误: 无法进入工作目录 %s${NC}\n" "$work_dir" >&2
+        exit 1
+    }
+    
     # 检测逻辑核心数（包括超线程）
     cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
     
@@ -207,22 +215,28 @@ run_coremark() {
         printf "${RED} 运行失败！${NC}\n"
         printf "${RED}========================================${NC}\n"
         
-        if grep -qi "permission denied" coremark_result.log >/dev/null 2>&1; then
-            printf "${YELLOW}可能是文件系统挂载为 noexec（禁止执行）${NC}\n\n"
-            printf "${BLUE}请尝试以下操作：${NC}\n"
-            printf "1. 找到一个允许执行的目录：\n"
-            printf " ${GREEN}群晖:${NC} cd /volume1/@tmp\n"
-            printf " ${GREEN}威联通:${NC} cd /share/CACHEDEV1_DATA/temp\n"
-            printf " ${GREEN}其他:${NC} cd /var/tmp 或 cd ~\n\n"
-            printf "2. 重新下载并运行：\n"
-            arch=$(detect_arch)
-            cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
-            printf " ${BLUE}wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_%s${NC}\n" "$arch"
-            printf " ${BLUE}chmod +x coremark_%s${NC}\n" "$arch"
-            printf " ${BLUE}./coremark_%s M%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch" "$cpu_threads"
+        # 检查日志文件是否存在（可能因为权限问题创建失败）
+        if [ -f coremark_result.log ] && [ -r coremark_result.log ]; then
+            if grep -qi "permission denied" coremark_result.log >/dev/null 2>&1; then
+                printf "${YELLOW}可能是文件系统挂载为 noexec（禁止执行）${NC}\n\n"
+                printf "${BLUE}请尝试以下操作：${NC}\n"
+                printf "1. 找到一个允许执行的目录：\n"
+                printf " ${GREEN}群晖:${NC} cd /volume1/@tmp\n"
+                printf " ${GREEN}威联通:${NC} cd /share/CACHEDEV1_DATA/temp\n"
+                printf " ${GREEN}其他:${NC} cd /var/tmp 或 cd ~\n\n"
+                printf "2. 重新下载并运行：\n"
+                arch=$(detect_arch)
+                cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
+                printf " ${BLUE}wget https://github.com/huladabang/coremark-goufan/releases/latest/download/coremark_%s${NC}\n" "$arch"
+                printf " ${BLUE}chmod +x coremark_%s${NC}\n" "$arch"
+                printf " ${BLUE}./coremark_%s M%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch" "$cpu_threads"
+            else
+                printf "${YELLOW}错误信息：${NC}\n"
+                cat coremark_result.log
+            fi
         else
-            printf "${YELLOW}错误信息：${NC}\n"
-            cat coremark_result.log
+            printf "${YELLOW}无法创建日志文件，可能是目录权限问题或磁盘空间不足${NC}\n"
+            printf "${YELLOW}工作目录: %s${NC}\n" "$work_dir"
         fi
         exit 1
     fi
@@ -259,11 +273,23 @@ submit_result() {
 
 # 清理临时文件
 cleanup() {
-    if [ -n "$TEMP_BINARY" ] && [ -f "$TEMP_BINARY" ]; then
+    # 防止清理过程中的错误导致脚本退出
+    set +e
+    
+    if [ -n "$TEMP_BINARY" ]; then
         printf "${YELLOW}清理临时文件...${NC}\n"
-        rm -f "$TEMP_BINARY" coremark_result.log
+        # 清理二进制文件
+        [ -f "$TEMP_BINARY" ] && rm -f "$TEMP_BINARY" >/dev/null 2>&1
+        # 清理日志文件（从二进制路径提取目录）
+        if [ -n "$TEMP_BINARY" ]; then
+            work_dir=$(dirname "$TEMP_BINARY")
+            [ -f "${work_dir}/coremark_result.log" ] && rm -f "${work_dir}/coremark_result.log" >/dev/null 2>&1
+        fi
         printf "${GREEN}清理完成!${NC}\n"
     fi
+    
+    # 恢复错误处理
+    set -e
 }
 
 # 主函数
