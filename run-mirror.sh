@@ -190,6 +190,11 @@ run_coremark() {
         exit 1
     }
     
+    # 清理可能残留的日志文件（防止上次运行留下的文件干扰）
+    if [ -f coremark_result.log ]; then
+        rm -f coremark_result.log >/dev/null 2>&1 || true
+    fi
+    
     # 检测逻辑核心数（包括超线程）
     cpu_threads=$(nproc 2>/dev/null || grep -c "^processor" /proc/cpuinfo)
     
@@ -209,15 +214,19 @@ run_coremark() {
         }
     fi
     
+    # 使用绝对路径存储日志文件，确保即使在子shell中也能正确创建
+    result_log="${work_dir}/coremark_result.log"
+    
     # 使用 M<n> 参数指定线程数，充分利用超线程
-    if ! "$binary" "M${cpu_threads}" 0x0 0x0 0x66 $iterations 7 1 2000 > coremark_result.log 2>&1; then
+    # 使用绝对路径重定向，确保日志文件创建在正确位置
+    if ! "$binary" "M${cpu_threads}" 0x0 0x0 0x66 $iterations 7 1 2000 > "$result_log" 2>&1; then
         printf "${RED}========================================${NC}\n"
         printf "${RED} 运行失败！${NC}\n"
         printf "${RED}========================================${NC}\n"
         
         # 检查日志文件是否存在（可能因为权限问题创建失败）
-        if [ -f coremark_result.log ] && [ -r coremark_result.log ]; then
-            if grep -qi "permission denied" coremark_result.log >/dev/null 2>&1; then
+        if [ -f "$result_log" ] && [ -r "$result_log" ]; then
+            if grep -qi "permission denied" "$result_log" >/dev/null 2>&1; then
                 printf "${YELLOW}可能是文件系统挂载为 noexec（禁止执行）${NC}\n\n"
                 printf "${BLUE}请尝试以下操作：${NC}\n"
                 printf "1. 找到一个允许执行的目录：\n"
@@ -232,18 +241,26 @@ run_coremark() {
                 printf " ${BLUE}./coremark_%s M%s 0x0 0x0 0x66 0 7 1 2000${NC}\n\n" "$arch" "$cpu_threads"
             else
                 printf "${YELLOW}错误信息：${NC}\n"
-                cat coremark_result.log
+                cat "$result_log"
             fi
         else
             printf "${YELLOW}无法创建日志文件，可能是目录权限问题或磁盘空间不足${NC}\n"
             printf "${YELLOW}工作目录: %s${NC}\n" "$work_dir"
         fi
+        # 清理失败的日志文件
+        rm -f "$result_log" >/dev/null 2>&1 || true
         exit 1
     fi
     
-    score=$(grep "CoreMark 1.0" coremark_result.log | grep -oE "CoreMark 1.0 : [0-9.]+" | grep -oE "[0-9.]+$")
-    iterations_done=$(grep "Iterations" coremark_result.log | grep -oE "Iterations[[:space:]]*:[[:space:]]*[0-9]+" | grep -oE "[0-9]+$")
-    total_time=$(grep "Total time" coremark_result.log | grep -oE "Total time \\(secs\\)[[:space:]]*:[[:space:]]*[0-9.]+" | grep -oE "[0-9.]+$")
+    # 检查日志文件是否存在
+    if [ ! -f "$result_log" ] || [ ! -r "$result_log" ]; then
+        printf "${RED}错误: 无法读取日志文件 %s${NC}\n" "$result_log" >&2
+        exit 1
+    fi
+    
+    score=$(grep "CoreMark 1.0" "$result_log" | grep -oE "CoreMark 1.0 : [0-9.]+" | grep -oE "[0-9.]+$")
+    iterations_done=$(grep "Iterations" "$result_log" | grep -oE "Iterations[[:space:]]*:[[:space:]]*[0-9]+" | grep -oE "[0-9]+$")
+    total_time=$(grep "Total time" "$result_log" | grep -oE "Total time \\(secs\\)[[:space:]]*:[[:space:]]*[0-9.]+" | grep -oE "[0-9.]+$")
     
     printf "\n${GREEN}========================================${NC}\n"
     printf "${GREEN} CoreMark 跑分结果${NC}\n"
@@ -254,8 +271,8 @@ run_coremark() {
     printf "${GREEN}========================================${NC}\n\n"
     
     printf "${YELLOW}完整跑分结果:${NC}\n"
-    cat coremark_result.log
-    printf "\n${BLUE}结果已保存到: coremark_result.log${NC}\n"
+    cat "$result_log"
+    printf "\n${BLUE}结果已保存到: %s${NC}\n" "$result_log"
 }
 
 # 提交结果提示
@@ -294,6 +311,15 @@ cleanup() {
 
 # 主函数
 main() {
+    # 脚本开始时的清理：清理可能残留的临时文件和日志文件
+    # 防止上次运行留下的文件干扰本次执行
+    set +e  # 临时禁用错误退出，清理失败不影响后续执行
+    # 清理常见的临时目录中可能存在的残留文件
+    for tmp_dir in /volume1/@tmp /volume2/@tmp /share/CACHEDEV1_DATA/temp /var/tmp /tmp; do
+        [ -d "$tmp_dir" ] && [ -w "$tmp_dir" ] && rm -f "${tmp_dir}/coremark_result.log" >/dev/null 2>&1 || true
+    done
+    set -e  # 恢复错误退出
+    
     printf "${GREEN}检测系统信息...${NC}\n"
     os=$(detect_os)
     arch=$(detect_arch)
