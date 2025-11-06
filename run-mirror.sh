@@ -270,9 +270,8 @@ run_coremark() {
     printf "${GREEN}总耗时:${NC} %s 秒\n" "$total_time"
     printf "${GREEN}========================================${NC}\n\n"
     
-    printf "${YELLOW}完整跑分结果:${NC}\n"
+    printf "${YELLOW}跑分结果详情:${NC}\n"
     cat "$result_log"
-    printf "\n${BLUE}结果已保存到: %s${NC}\n" "$result_log"
 }
 
 # 提交结果提示
@@ -280,7 +279,7 @@ submit_result() {
     printf "\n${YELLOW}========================================${NC}\n"
     printf "${YELLOW} 想要提交你的跑分结果？${NC}\n"
     printf "${YELLOW}========================================${NC}\n"
-    printf "📸 ${GREEN}请截图保存上方完整的跑分结果${NC}\n"
+    printf "📸 ${GREEN}请截图保存：CPU信息 + 跑分结果${NC}\n"
     printf "🌐 ${GREEN}然后访问提交页面：${NC}\n"
     printf "   ${BLUE}https://gou.fan/coremark/submit${NC}\n\n"
     printf "💡 ${CYAN}提交后需管理员审核，通过后将会显示在${NC}\n"
