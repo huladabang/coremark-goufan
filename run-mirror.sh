@@ -15,6 +15,9 @@ NC='\033[0m'
 # 配置 - 使用狗点饭镜像源
 DOWNLOAD_BASE="https://gou.fan/coremark/releases/latest/download"
 
+# 全局状态
+CLEANED_UP=0
+
 printf "${BLUE}========================================${NC}\n"
 printf "${BLUE}  狗点饭 NAS CoreMark 跑分工具${NC}\n"
 printf "${BLUE}  (国内镜像加速版)${NC}\n"
@@ -282,13 +285,16 @@ submit_result() {
     printf "📸 ${GREEN}请截图保存：CPU信息 + 跑分结果${NC}\n"
     printf "🌐 ${GREEN}然后访问提交页面：${NC}\n"
     printf "   ${BLUE}https://gou.fan/coremark/submit${NC}\n\n"
-    printf "💡 ${CYAN}提交后需管理员审核，通过后将会显示在${NC}\n"
-    printf "   ${CYAN}NAS/迷你主机 CPU 性能天梯图中！${NC}\n"
+    printf "💡 ${CYAN}提交后需管理员审核，通过后将会显示在 NAS/迷你主机 CPU 性能天梯图中！${NC}\n"
     printf "   感谢你帮助我们完善低功耗CPU性能排行榜！\n\n"
 }
 
 # 清理临时文件
 cleanup() {
+    if [ "${CLEANED_UP:-0}" -eq 1 ]; then
+        return
+    fi
+
     # 防止清理过程中的错误导致脚本退出
     set +e
     
@@ -306,6 +312,8 @@ cleanup() {
     
     # 恢复错误处理
     set -e
+
+    CLEANED_UP=1
 }
 
 # 主函数
